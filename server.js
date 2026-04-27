@@ -26,7 +26,7 @@ const inventory = [
 ];
 
 
-// --- 3. Helpers ---
+// --- Helpers ---
 function isValidVehicle(body) {
   const { mileage, model, price } = body || {};
   return (
@@ -114,5 +114,5 @@ app.get('/cart', (req, res) => res.render('cart'));
 
 
 app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
+  console.log(`SFSU Dealership Server running at http://localhost:${PORT}`);
 });
