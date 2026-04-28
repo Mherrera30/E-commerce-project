@@ -1,0 +1,20 @@
+extends layout
+
+block content
+  div.detail-container
+    a.back-link(href="/products") ← Back to Inventory
+    h1 #{car.model}
+    
+    div.stats-grid
+      div.stat-item
+        span.label Price
+        span.value $#{car.price.toLocaleString()}
+      div.stat-item
+        span.label Mileage
+        span.value #{car.mileage.toLocaleString()} miles
+      div.stat-item
+        span.label Condition
+        span.value SFSU Certified Pre-Owned
+    
+    div.action-area
+      button.btn Add to Cart

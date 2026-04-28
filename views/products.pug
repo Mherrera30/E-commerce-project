@@ -1,0 +1,14 @@
+extends layout
+
+block content
+  h1 Current Inventory
+  p.subtitle Browse our selection of certified vehicles.
+  
+  div.product-grid
+    each car in inventory
+      div.car-card
+        h2 #{car.model}
+        div.details
+          p #[strong Mileage:] #{car.mileage.toLocaleString()} miles
+          p #[strong Price:] $#{car.price.toLocaleString()}
+        a.btn-view(href=`/products/${car.mileage}`) View Full Details
