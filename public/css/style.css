@@ -1,3 +1,4 @@
+
 /* SFSU Dealership Theme */
 
 body {
@@ -8,6 +9,8 @@ body {
 }
 
 
+
+/* ---- Nav Bar ---- */
 
 nav {
     background: #231161; /* SFSU Purple/Blue */
@@ -55,9 +58,13 @@ nav a:hover {
 }
 
 
+
+
+
+
 /* MAIN CONTENT */
 main {
-    padding: 120px 5% 2rem 5%; /* Top padding must be > nav height */
+    padding: 120px 5% 2rem 5%; 
     min-height: 80vh;
 }
 
@@ -107,6 +114,7 @@ footer {
 
 
 
+/* ---- Tables ---- */
 
 /* Styles the Shopping Cart and any other tables */
 table {
@@ -118,8 +126,8 @@ table {
 /* Specifically targets the headers and the individual data cells */
 th, td {
     padding: 15px;      /* This creates the gap between the text and the cell borders */
-    text-align: left;   /* Keeps text aligned to the left */
-    border-bottom: 1px solid #ddd; /* Adds a clean divider line between rows */
+    text-align: left;   
+    border-bottom: 1px solid #ddd; 
 }
 
 /* Makes the headers (Item, Quantity, Price) stand out */
@@ -131,24 +139,26 @@ th {
 
 
 
+/* ---- 404 page ---- */
+
 /* Center all elements within the 404 container */
 .error-container {
     display: flex;
     flex-direction: column;
     justify-content: center; /* Vertical center */
     align-items: center;     /* Horizontal center */
-    min-height: 50vh;        /* Minimum height so it's not smushed at the top */
+    min-height: 50vh;        /* Minimum height so it's not smushed at top */
     text-align: center;
     padding: 2rem;
 }
 
-/* Ensure paragraph width doesn't get too wide on large screens */
+/* Ensure paragraph width doesn't get too wide on larger screens */
 .error-container p {
     max-width: 600px;
-    margin: 0 auto 1rem auto; /* Centers the text block and adds bottom spacing */
+    margin: 0 auto 1rem auto;
 }
 
-/* Centers the 'Back' button area specifically */
+/* Centers the 'Back' button area */
 .error-container .cta-area {
     margin-top: 2rem;
 }
