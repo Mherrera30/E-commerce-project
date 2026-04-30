@@ -20,10 +20,12 @@ app.set('views', path.join(__dirname, 'views'));
 /** Inventory Data 
  */
 const inventory = [
-  { mileage: 35000, model: 'Honda Accord', price: 24000 },
-  { mileage: 15000, model: 'Tesla Model 3', price: 25000 },
-  { mileage: 85000, model: 'Chevrolet Camaro', price: 15000 }
+  { mileage: 35000, model: '2018 Honda Accord', price: 24000 },
+  { mileage: 15000, model: '2020 Tesla Model 3', price: 25000 },
+  { mileage: 85000, model: '2017 Chevrolet Camaro', price: 15000 }
 ];
+
+
 
 
 // --- Helpers ---
@@ -111,6 +113,12 @@ app.post('/login', (req, res) => res.redirect('/'));
 
 app.get('/profile', (req, res) => res.render('profile'));
 app.get('/cart', (req, res) => res.render('cart'));
+
+
+// This handles any URL that doesn't exist (i.e., /random-page)
+app.use((req, res) => {
+  res.status(404).render('404', { id: req.originalUrl });
+});
 
 
 app.listen(PORT, () => {
