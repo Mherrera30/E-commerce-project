@@ -6,7 +6,10 @@ body {
     margin: 0;
     line-height: 1.6;
     color: #333;
+    background-color: #f9f9f9; 
 }
+
+
 
 
 
@@ -28,14 +31,11 @@ nav {
     box-sizing: border-box;
 }
 
-
-/* Formats the branding text/logo on left side of nav */
 nav .logo {
     font-size: 1.5rem;
     font-weight: bold;
     text-transform: uppercase;
 }
-
 
 nav ul {
     list-style: none;
@@ -45,13 +45,11 @@ nav ul {
     padding: 0;
 }
 
-/* Sets default appearance for nav links */
 nav a {
     color: #fff;
     text-decoration: none;
     font-weight: 500;
 }
-
 
 nav a:hover {
     color: #C99700;
@@ -61,8 +59,7 @@ nav a:hover {
 
 
 
-
-/* MAIN CONTENT */
+/* ---- Main Content ---- */
 main {
     padding: 120px 5% 2rem 5%; 
     min-height: 80vh;
@@ -72,25 +69,24 @@ main {
 .hero {
     text-align: center;
     padding: 4rem 0;
-    background: #f4f4f4;
+    background: #fff; /* Changed to white for a cleaner look */
+    border: 1px solid #eee;
     border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-/* Targets the "Welcome" heading */
 .hero h1 {
     font-size: 3.25rem;
     margin-bottom: 1rem;
     color: #231161;
 }
 
-/* Targets the description below h1 */
 .hero p {
     font-size: 1.1rem;
     color: #555;
     max-width: 800px;
     margin: 0 auto; 
 }
-
 
 .btn {
     display: inline-block;
@@ -101,64 +97,203 @@ main {
     border-radius: 5px;
     margin-top: 20px;
     font-weight: bold;
+    transition: background 0.3s;
 }
 
+.btn:hover {
+    background: #1a0d4a;
+}
 
 footer {
     text-align: center;
-    padding: 2rem;
+    margin-top: 2rem;
+    padding: 1rem;
     font-size: 0.9rem;
     border-top: 1px solid #eee;
+    color: #C99700; 
+    background: #231161;
 }
+
 
 
 
 
 /* ---- Tables ---- */
-
-/* Styles the Shopping Cart and any other tables */
 table {
     width: 100%;
-    border-collapse: collapse; /* Prevents double borders */
+    border-collapse: collapse;
     margin: 20px 0;
+    background: #fff;
 }
 
-/* Specifically targets the headers and the individual data cells */
 th, td {
-    padding: 15px;      /* This creates the gap between the text and the cell borders */
+    padding: 15px;      
     text-align: left;   
     border-bottom: 1px solid #ddd; 
 }
 
-/* Makes the headers (Item, Quantity, Price) stand out */
 th {
     background-color: #f4f4f4;
-    color: #231161; /* SFSU Purple */
+    color: #231161;
 }
 
 
 
 
-/* ---- 404 page ---- */
 
-/* Center all elements within the 404 container */
+/* ---- 404 error page ---- */
 .error-container {
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Vertical center */
-    align-items: center;     /* Horizontal center */
-    min-height: 50vh;        /* Minimum height so it's not smushed at top */
+    justify-content: center;
+    align-items: center;
+    min-height: 50vh;
     text-align: center;
     padding: 2rem;
 }
 
-/* Ensure paragraph width doesn't get too wide on larger screens */
 .error-container p {
     max-width: 600px;
     margin: 0 auto 1rem auto;
 }
 
-/* Centers the 'Back' button area */
 .error-container .cta-area {
     margin-top: 2rem;
+}
+
+
+
+
+
+/* ---- INVENTORY GRID & CARDS ---- */
+
+/* Creates the grid layout */
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+/* Card container */
+.car-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.car-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+}
+
+/* Placeholder box for car image */
+.image-placeholder {
+    width: 100%;
+    height: 200px;
+    background-color: #e0e0e0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #888;
+    font-size: 0.9rem;
+    font-style: italic;
+    border-bottom: 1px solid #eee;
+}
+
+/* Content padding inside the card */
+.car-card-content {
+    padding: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.car-model {
+    font-size: 1.2rem;
+    margin: 0 0 10px 0;
+    color: #231161;
+    font-weight: 600;
+}
+
+/* Flexbox row for price and mileage */
+.car-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 1.2rem;
+}
+
+.price {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.mileage {
+    font-size: 0.8rem;
+    color: #777;
+}
+
+/* Details button inside the card */
+.btn-details {
+    text-align: center;
+    background: #231161;
+    color: white;
+    text-decoration: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    margin-top: auto;
+    transition: background 0.3s;
+}
+
+.btn-details:hover {
+    background: #C99700; 
+    color: #231161;
+}
+
+
+
+
+
+/* Shopping cart */
+.cart-summary {
+    margin-top: 3rem;
+    text-align: right; /* Aligns pricing to the right like a real receipt */
+    max-width: 400px;
+    margin-left: auto; 
+    padding: 1.25rem;
+    background: #fff;
+    border-radius: 6px;
+    border: 1px solid #eee;
+}
+
+.cart-summary p {
+    margin: 5px 0;
+    display: flex;
+    justify-content: space-between; /* Pushes labels to left and prices to right */
+    color: #575656;
+}
+
+.cart-summary span {
+    font-weight: 400;
+    color: #333;
+}
+
+.cart-summary hr {
+    border: 0;
+    border-top: 1px solid #ddd;
+    margin: 15px 0;
+}
+
+.cart-summary h3 {
+    margin: 0;
+    color: #231161;
+    font-size: 1.25rem;
 }
