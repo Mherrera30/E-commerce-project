@@ -4,16 +4,31 @@ html(lang="en")
     meta(charset="UTF-8")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
     title SFSU Dealership | Quality Pre-Owned Vehicles
+    
+    link(href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet")
+    link(rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200")
     link(rel="stylesheet", href="/css/style.css")
+
   body
     header
       nav
         div.logo SFSU Dealership
         ul
-          li: a(href="/") Home
-          li: a(href="/products") Inventory
-          li: a(href="/cart") Cart
-          li: a(href="/login") Login
+          li
+            a(href="/" title="Home")
+              span.material-symbols-outlined home
+          li
+            a(href="/products" title="Inventory")
+              span.material-symbols-outlined directions_car
+          li
+            a(href="/cart" title="Shopping Cart")
+              span.material-symbols-outlined shopping_cart
+          li
+            a(href="/login" title="Login")
+              span.material-symbols-outlined login
+          li
+            a(href="/profile" title="User Profile")
+              span.material-symbols-outlined person
     
     main
       block content

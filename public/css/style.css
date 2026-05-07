@@ -40,7 +40,7 @@ nav .logo {
 nav ul {
     list-style: none;
     display: flex;
-    gap: 20px;
+    gap: 1rem; 
     margin: 0;
     padding: 0;
 }
@@ -48,11 +48,24 @@ nav ul {
 nav a {
     color: #fff;
     text-decoration: none;
-    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px; 
+    height: 45px;
+    border-radius: 50%;
+    transition: background 0.3s;
 }
 
 nav a:hover {
+    background: rgba(255, 255, 255, 0.15); /* Adds a nice circular hover effect */
     color: #C99700;
+}
+
+/* Adjusts the Material Icon size to match your font better */
+.material-symbols-outlined {
+    font-size: 30px;        
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
 
