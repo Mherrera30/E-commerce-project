@@ -8,9 +8,7 @@ block content
     each car in inventory
       div.car-card
 
-        //- Placeholder for future images
-        div.image-placeholder
-          span No Image Available
+        img.car-image(src=car.image_url alt=car.model)
         
         div.car-card-content
           h2.car-model #{car.model}

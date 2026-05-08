@@ -2,19 +2,30 @@ extends layout
 
 block content
   div.detail-container
-    a.back-link(href="/products") ← Back to Inventory
-    h1 #{car.model}
+    // The Image
+    div.detail-image-section
+      img(src=car.image_url alt=car.model)
     
-    div.stats-grid
-      div.stat-item
-        span.label Price
-        span.value $#{car.price.toLocaleString()}
-      div.stat-item
-        span.label Mileage
-        span.value #{car.mileage.toLocaleString()} miles
-      div.stat-item
-        span.label Condition
-        span.value SFSU Certified Pre-Owned
-    
-    div.action-area
-      button.btn Add to Cart
+    // The Info
+    div.detail-info-section
+      nav.breadcrumb
+        a(href="/products") ← Back to Inventory
+      
+      h1 #{car.model}
+      div.price-tag $#{car.price.toLocaleString()}
+      
+      div.specs-grid
+        div.spec-item
+          span.label Mileage
+          span.value #{car.mileage.toLocaleString()} mi
+        div.spec-item
+          span.label Condition
+          span.value Certified Pre-Owned
+        div.spec-item
+          span.label Location
+          span.value San Francisco, CA
+
+      form(action="/cart/add" method="POST")
+        input(type="hidden" name="mileage" value=car.mileage)
+        button.btn-cart(type="submit") 
+          | Add to Cart
