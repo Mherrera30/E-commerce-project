@@ -3,6 +3,7 @@
 const express = require('express');
 const path = require('path'); 
 const sqlite3 = require("sqlite3").verbose(); 
+const session = require('express-session');
 const app = express();
 
 const PORT = process.env.PORT || 3000;
@@ -11,9 +12,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true })); 
 app.use(express.static(path.join(__dirname, 'public'))); 
 
+app.use(session({
+  secret: 'sfsu-dealership-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 600000 } // Session lasts 10 minutes
+}));
+
+
+app.use((req, res, next) => {
+  res.locals.user = req.session.user; 
+  next();
+});
+
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
-
 
 
 
@@ -24,7 +37,18 @@ const db = new sqlite3.Database("inventory.db", (err) => {
     if (err) return console.error("Error opening database:", err.message);
     console.log("Connected to the SFSU Dealership database.");
 
-    // Products Table 
+    db.run("PRAGMA foreign_keys = ON");
+
+    // Users Table
+    db.run(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL
+      )
+    `);
+
+    // Inventory Table 
     db.run(`
       CREATE TABLE IF NOT EXISTS inventory (
         mileage INTEGER PRIMARY KEY,
@@ -34,7 +58,6 @@ const db = new sqlite3.Database("inventory.db", (err) => {
       )
     `, (err) => {
         if (err) return;
-        
         const insertQuery = `INSERT OR IGNORE INTO inventory (mileage, model, price, image_url) VALUES (?, ?, ?, ?)`;
         db.run(insertQuery, [58000, "2018 Honda Accord", 24000, "/images/2018_Accord.png"]);
         db.run(insertQuery, [15000, "2020 Tesla Model 3", 25000, "/images/2020_Model_3.png"]);
@@ -42,8 +65,49 @@ const db = new sqlite3.Database("inventory.db", (err) => {
         db.run(insertQuery, [20000, "2024 Porsche GT3 RS", 220000, "/images/2024_GT3_RS.png"]);
         db.run(insertQuery, [60000, "2019 Mercedes S Class", 70000, "/images/2019_Mercedes.png"]);
     });
+
+    // Cart Table
+    db.run(`
+     CREATE TABLE IF NOT EXISTS cart (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     user_id INTEGER,
+     product_id INTEGER,
+     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+     FOREIGN KEY (product_id) REFERENCES inventory(mileage) ON DELETE CASCADE,
+     UNIQUE(user_id, product_id) -- This prevents the same car being added twice
+  )
+`);
 });
 
+
+
+
+// --- Auth Routes ---
+
+app.post('/register', (req, res) => {
+  const { username, password } = req.body;
+  db.run("INSERT INTO users (username, password) VALUES (?, ?)", [username, password], (err) => {
+    if (err) return res.send("Error creating account (Username might be taken).");
+    res.redirect('/login');
+  });
+});
+
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, user) => {
+    if (user) {
+      req.session.user = user;
+      res.redirect('/products');
+    } else {
+      res.send("Invalid username or password.");
+    }
+  });
+});
+
+app.get('/logout', (req, res) => {
+  req.session.destroy();
+  res.redirect('/');
+});
 
 
 
@@ -64,24 +128,6 @@ app.get('/api/products/:mileage', (req, res) => {
     res.status(200).json(row);
   });
 });
-
-app.post('/api/products/add', (req, res) => {
-  const { mileage, model, price, image_url } = req.body;
-  db.run("INSERT INTO inventory (mileage, model, price, image_url) VALUES (?, ?, ?, ?)", 
-    [mileage, model, price, image_url], 
-    function(err) {
-      if (err) return res.status(409).json({ error: 'Vehicle already exists' });
-      res.status(201).json({ mileage, model, price, image_url });
-  });
-});
-
-app.delete('/api/products/:mileage', (req, res) => {
-  db.run("DELETE FROM inventory WHERE mileage = ?", [req.params.mileage], function(err) {
-    if (err) return res.status(500).json({ error: err.message });
-    res.sendStatus(204);
-  });
-});
-
 
 
 
@@ -105,10 +151,56 @@ app.get('/products/:mileage', (req, res) => {
   });
 });
 
+
+
+
+// --- Cart Functionality ---
+
+app.post('/cart/add', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  const userId = req.session.user.id;
+  const productId = req.body.mileage;
+
+  db.run("INSERT INTO cart (user_id, product_id) VALUES (?, ?)", [userId, productId], (err) => {
+    if (err) return res.status(500).send("Error adding to cart");
+    res.redirect('/cart');
+  });
+});
+
+app.get('/cart', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  const userId = req.session.user.id;
+
+  // Uses a JOIN to get the car details for the items in the user's cart
+  const query = `
+    SELECT inventory.* FROM inventory 
+    JOIN cart ON inventory.mileage = cart.product_id 
+    WHERE cart.user_id = ?
+  `;
+
+  db.all(query, [userId], (err, items) => {
+    if (err) return res.status(500).send("Error fetching cart");
+    res.render('cart', { cartItems: items });
+  });
+});
+
+app.post('/cart/remove', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  const userId = req.session.user.id;
+  const productId = req.body.mileage;
+
+  // Removes only one instance of the car from the cart
+  db.run("DELETE FROM cart WHERE id = (SELECT id FROM cart WHERE user_id = ? AND product_id = ? LIMIT 1)", 
+    [userId, productId], (err) => {
+    res.redirect('/cart');
+  });
+});
+
 app.get('/login', (req, res) => res.render('login'));
-app.post('/login', (req, res) => res.redirect('/'));
-app.get('/profile', (req, res) => res.render('profile'));
-app.get('/cart', (req, res) => res.render('cart'));
+app.get('/profile', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  res.render('profile');
+});
 
 
 // 404 Catcher

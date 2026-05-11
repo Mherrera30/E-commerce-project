@@ -2,21 +2,30 @@ extends layout
 
 block content
   h1 Your Shopping Cart
-  p (Static Mockup)
   
-  table
-    tr
-      th Item
-      th Quantity
-      th Price
-    tr
-      td 2023 Porsche GT3 RS
-      td 1
-      td $125,000
-
-  div.cart-summary
-    p Subtotal: #[span $125,000]
-    p Sales Tax (Estimate): #[span $12,000]
-    p Fees and Registration: #[span $1,000]
-    hr
-    h3 Total: $138,000
+  if cartItems && cartItems.length > 0
+    div.inventory-grid
+      each item in cartItems
+        div.car-card
+          img.car-image(src=item.image_url)
+          div.car-card-content
+            h2.car-model #{item.model}
+            p.price $#{item.price.toLocaleString()}
+            
+            //- REMOVE BUTTON
+            form(action="/cart/remove" method="POST")
+              input(type="hidden" name="mileage" value=item.mileage)
+              button.btn-details(type="submit" style="background: #a30000;") Remove
+    
+    div.cart-summary
+      h3 Summary
+      p Items: 
+        span #{cartItems.length}
+      hr
+      h3 Total: 
+        span $#{cartItems.reduce((sum, i) => sum + i.price, 0).toLocaleString()}
+  else
+    div.hero
+      h2 Your cart is empty
+      p Start browsing our inventory to find your next vehicle.
+      a.btn(href="/products") Browse Inventory

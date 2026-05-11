@@ -1,22 +1,22 @@
 extends layout
 
 block content
-  div.login-page
-    h1 Login
+  .login-page
+    h2 Login
     
-    form(action="/login" method="POST")
-      div.input-box
-        label Username:
-        input(type="text" name="username" required)
+    form(action="/login" method="POST" id="authForm")
+      .input-box
+        label(for="username") Username
+        input(type="text" name="username" id="username" required)
+      .input-box
+        label(for="password") Password
+        input(type="password" name="password" id="password" required)
       
-      div.input-box
-        label Password:
-        input(type="password" name="password" required)
-      
+      //- Regular Login Button
       button.btn(type="submit") Login
-      
-    p: a(href="/") Forgot Password?
     
-    hr.login-divider
+    .login-divider
     p Don't have an account?
-    a.btn-secondary(href="/") Create an Account
+    
+    //- REGISTER BUTTON
+    button.btn-secondary(type="submit" form="authForm" formaction="/register") Create Account

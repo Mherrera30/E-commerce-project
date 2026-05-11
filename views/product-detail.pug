@@ -25,7 +25,9 @@ block content
           span.label Location
           span.value San Francisco, CA
 
+          //- THE FUNCTIONAL PART
       form(action="/cart/add" method="POST")
         input(type="hidden" name="mileage" value=car.mileage)
         button.btn-cart(type="submit") 
+          span.material-symbols-outlined shopping_cart
           | Add to Cart
