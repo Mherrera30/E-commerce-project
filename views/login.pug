@@ -2,21 +2,23 @@ extends layout
 
 block content
   .login-page
-    h2 Login
+    h2 Access Your Account
     
+    //- FEEDBACK ALERTS
+    if error
+      p.alert-error #{error}
+    if success
+      p.alert-success #{success}
+
     form(action="/login" method="POST" id="authForm")
       .input-box
-        label(for="username") Username
-        input(type="text" name="username" id="username" required)
+        label Username
+        input(type="text" name="username" required)
       .input-box
-        label(for="password") Password
-        input(type="password" name="password" id="password" required)
-      
-      //- Regular Login Button
+        label Password
+        input(type="password" name="password" required)
       button.btn(type="submit") Login
     
     .login-divider
     p Don't have an account?
-    
-    //- REGISTER BUTTON
     button.btn-secondary(type="submit" form="authForm" formaction="/register") Create Account

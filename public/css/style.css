@@ -120,9 +120,10 @@ main {
 
 footer {
     text-align: center;
-    margin-top: 4rem;
-    padding: 1rem;
+    margin-top: 5rem;
+    padding: 0.9rem;
     font-size: 0.9rem;
+    font-weight: 600;
     border-top: 1px solid #eee;
     color: #C99700; 
     background: #231161;
@@ -301,8 +302,11 @@ th {
 }
 
 .breadcrumb a {
-    color: #666;
+    color: #C99700;
     text-decoration: none;
+    margin-right: auto;
+    width: 15%;
+    font-weight: 700;
     font-size: 0.9rem;
 }
 
@@ -457,4 +461,44 @@ th {
 
 .btn-secondary:hover {
     background-color: #f4f4f4;
+}
+
+
+
+
+
+/* Feedback Styling */
+.alert-error { color: #a30000; background: #ffebeb; padding: 10px; border-radius: 5px; text-align: center; }
+.alert-success { color: #006400; background: #ebffeb; padding: 10px; border-radius: 5px; text-align: center; }
+
+/* --- MOBILE DESIGN --- */
+
+@media (max-width: 768px) {
+    nav ul {
+        gap: 15px;
+    }
+
+    /* 1 column on mobile */
+    .inventory-grid {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+
+    .detail-container {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .detail-image-section, .detail-info-section {
+        flex: none;
+        width: 100%;
+    }
+
+    .price-tag {
+        font-size: 2rem;
+    }
+
+    .btn, .btn-cart, .btn-details {
+        padding: 1.2rem;
+    }
 }

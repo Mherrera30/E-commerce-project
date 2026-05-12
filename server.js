@@ -8,6 +8,7 @@ const app = express();
 
 const PORT = process.env.PORT || 3000;
 
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); 
 app.use(express.static(path.join(__dirname, 'public'))); 
@@ -18,7 +19,6 @@ app.use(session({
   saveUninitialized: false,
   cookie: { maxAge: 600000 } // Session lasts 10 minutes
 }));
-
 
 app.use((req, res, next) => {
   res.locals.user = req.session.user; 
@@ -32,7 +32,6 @@ app.set('views', path.join(__dirname, 'views'));
 
 
 // --- Database Setup ---
-
 const db = new sqlite3.Database("inventory.db", (err) => {
     if (err) return console.error("Error opening database:", err.message);
     console.log("Connected to the SFSU Dealership database.");
@@ -68,15 +67,15 @@ const db = new sqlite3.Database("inventory.db", (err) => {
 
     // Cart Table
     db.run(`
-     CREATE TABLE IF NOT EXISTS cart (
-     id INTEGER PRIMARY KEY AUTOINCREMENT,
-     user_id INTEGER,
-     product_id INTEGER,
-     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-     FOREIGN KEY (product_id) REFERENCES inventory(mileage) ON DELETE CASCADE,
-     UNIQUE(user_id, product_id) -- This prevents the same car being added twice
-  )
-`);
+      CREATE TABLE IF NOT EXISTS cart (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        product_id INTEGER,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES inventory(mileage) ON DELETE CASCADE,
+        UNIQUE(user_id, product_id)
+      )
+    `);
 });
 
 
@@ -87,8 +86,8 @@ const db = new sqlite3.Database("inventory.db", (err) => {
 app.post('/register', (req, res) => {
   const { username, password } = req.body;
   db.run("INSERT INTO users (username, password) VALUES (?, ?)", [username, password], (err) => {
-    if (err) return res.send("Error creating account (Username might be taken).");
-    res.redirect('/login');
+    if (err) return res.render('login', { error: "Username taken or database error." });
+    res.render('login', { success: "Account created! You can now log in." });
   });
 });
 
@@ -97,9 +96,15 @@ app.post('/login', (req, res) => {
   db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, user) => {
     if (user) {
       req.session.user = user;
-      res.redirect('/products');
+      // Get inventory to render the products page with a welcome message
+      db.all("SELECT * FROM inventory", (err, rows) => {
+        res.render('products', { 
+          inventory: rows, 
+          welcomeMsg: `Welcome back, ${user.username}!` 
+        });
+      });
     } else {
-      res.send("Invalid username or password.");
+      res.render('login', { error: "Invalid username or password." });
     }
   });
 });
@@ -161,7 +166,8 @@ app.post('/cart/add', (req, res) => {
   const userId = req.session.user.id;
   const productId = req.body.mileage;
 
-  db.run("INSERT INTO cart (user_id, product_id) VALUES (?, ?)", [userId, productId], (err) => {
+  // Uses INSERT OR IGNORE to respect the UNIQUE constraint in the DB
+  db.run("INSERT OR IGNORE INTO cart (user_id, product_id) VALUES (?, ?)", [userId, productId], (err) => {
     if (err) return res.status(500).send("Error adding to cart");
     res.redirect('/cart');
   });
@@ -171,7 +177,6 @@ app.get('/cart', (req, res) => {
   if (!req.session.user) return res.redirect('/login');
   const userId = req.session.user.id;
 
-  // Uses a JOIN to get the car details for the items in the user's cart
   const query = `
     SELECT inventory.* FROM inventory 
     JOIN cart ON inventory.mileage = cart.product_id 
@@ -189,14 +194,13 @@ app.post('/cart/remove', (req, res) => {
   const userId = req.session.user.id;
   const productId = req.body.mileage;
 
-  // Removes only one instance of the car from the cart
-  db.run("DELETE FROM cart WHERE id = (SELECT id FROM cart WHERE user_id = ? AND product_id = ? LIMIT 1)", 
-    [userId, productId], (err) => {
+  db.run("DELETE FROM cart WHERE user_id = ? AND product_id = ?", [userId, productId], (err) => {
     res.redirect('/cart');
   });
 });
 
 app.get('/login', (req, res) => res.render('login'));
+
 app.get('/profile', (req, res) => {
   if (!req.session.user) return res.redirect('/login');
   res.render('profile');
