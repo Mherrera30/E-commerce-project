@@ -4,18 +4,15 @@ A fully functional e-commerce website for selling pre-owned vehicles, built with
 
 ## Features
 
-### ✅ Completed Features
-
-- **Homepage** - Welcome page with call-to-action
-- **Product Listings** - Grid view of all available vehicles with images, prices, and mileage
-- **Product Details** - Individual pages for each vehicle with detailed specifications
-- **User Authentication** - Account creation and login system
-- **Shopping Cart** - Add/remove vehicles to cart with price calculation
-- **User Profile** - View account information and quick navigation
-- **Session Management** - Persistent login sessions (10 minutes)
-- **SQLite Database** - Persistent data storage for users, inventory, and cart items
-- **Responsive Design** - Mobile-friendly layout
-- **SFSU Branding** - Purple and gold color scheme
+- User registration and login with secure password hashing (bcrypt)
+- Browse inventory of pre-owned vehicles
+- View detailed product information
+- Shopping cart functionality (add/remove items)
+- Checkout process with order confirmation
+- User profile management
+- Session-based authentication
+- Responsive design for mobile and desktop
+- SQLite database for persistent data storage
 
 ## Tech Stack
 
@@ -61,14 +58,18 @@ E-commerce-project/
 ├── public/
 │   ├── css/
 │   │   └── style.css          # All styling
-│   └── images/                # Car images
+│   ├── images/                # Car images (5 vehicles)
+│   └── js/
+│       └── homepage.js        # Counter animations
 ├── views/
 │   ├── layout.pug             # Base template with nav/footer
 │   ├── home.pug               # Homepage
 │   ├── products.pug           # Inventory listing
 │   ├── product-detail.pug     # Individual car details
-│   ├── login.pug              # Login/Register page
+│   ├── login.pug              # Login page
+│   ├── register.pug           # Registration page
 │   ├── cart.pug               # Shopping cart
+│   ├── checkout-success.pug   # Order confirmation
 │   ├── profile.pug            # User profile
 │   └── 404.pug                # Error page
 ├── server.js                  # Main application server
@@ -81,7 +82,7 @@ E-commerce-project/
 ### Users Table
 - `id` - Auto-incrementing primary key
 - `username` - Unique username
-- `password` - Plain text password (⚠️ NOT production-ready)
+- `password` - Hashed password (bcrypt with 10 salt rounds)
 
 ### Inventory Table
 - `mileage` - Primary key (unique identifier)
@@ -93,6 +94,7 @@ E-commerce-project/
 - `id` - Auto-incrementing primary key
 - `user_id` - Foreign key to users
 - `product_id` - Foreign key to inventory (mileage)
+- Unique constraint on (user_id, product_id)
 
 ## Available Routes
 
@@ -100,20 +102,18 @@ E-commerce-project/
 - `GET /` - Homepage
 - `GET /products` - All vehicles
 - `GET /products/:mileage` - Single vehicle details
-- `GET /login` - Login/Register page
+- `GET /login` - Login page
+- `GET /register` - Registration page
 - `GET /profile` - User profile (requires login)
 - `GET /cart` - Shopping cart (requires login)
 - `GET /logout` - Logout and destroy session
-
-### API Routes (JSON)
-- `GET /api/products` - Get all vehicles as JSON
-- `GET /api/products/:mileage` - Get single vehicle as JSON
 
 ### Form Actions
 - `POST /register` - Create new account
 - `POST /login` - Login to existing account
 - `POST /cart/add` - Add vehicle to cart
 - `POST /cart/remove` - Remove vehicle from cart
+- `POST /checkout` - Process checkout and clear cart
 
 ## Default Inventory
 
@@ -144,32 +144,42 @@ The database is seeded with 5 vehicles:
 4. View your cart from the navigation
 
 ### Checking Out
-- Cart displays total price and item count
-- Remove items as needed
-- (Note: Actual payment processing is not implemented)
+1. View your cart
+2. Click "Proceed to Checkout"
+3. Order confirmation page displays
+4. Cart is automatically cleared
+5. Continue shopping or view profile
 
-## Security Notes ⚠️
+Note: Actual payment processing is not implemented.
 
-**This is an educational project and NOT production-ready:**
-- Passwords are stored in plain text (should use bcrypt)
+## Security Features
+
+- Password hashing using bcrypt (10 salt rounds)
+- Session-based authentication
+- Parameterized SQL queries to prevent injection
+- Password confirmation on registration
+- Session expiration (10 minutes)
+
+## Known Limitations
+
+This is an educational project with the following limitations:
 - No CSRF protection
-- No input validation/sanitization
 - Session secret is hardcoded
 - No HTTPS enforcement
+- No email verification
+- Database resets on deployment restarts (free tier)
 
 ## Future Enhancements
 
 Potential improvements for a production version:
-- [ ] Password hashing (bcrypt)
-- [ ] Email verification
-- [ ] Search and filter functionality
-- [ ] Image upload for vehicles
-- [ ] Admin panel for inventory management
-- [ ] Order history
-- [ ] Payment integration (Stripe/PayPal)
-- [ ] Real car images
-- [ ] Vehicle comparison feature
-- [ ] Wishlist/favorites
+- Email verification for new accounts
+- Search and filter functionality for inventory
+- Admin panel for inventory management
+- Order history tracking
+- Payment integration (Stripe/PayPal)
+- Vehicle comparison feature
+- Wishlist/favorites functionality
+- Advanced search filters (price range, mileage, etc.)
 
 ## Development
 
