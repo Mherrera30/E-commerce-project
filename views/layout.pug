@@ -15,23 +15,24 @@ html(lang="en")
         div.logo SFSU Dealership
         ul
           li
-            a(href="/" title="Home")
-              span.material-symbols-outlined home
+            a(href="/") Home
           li
-            a(href="/products" title="Inventory")
-              span.material-symbols-outlined directions_car
+            a(href="/products") Inventory
           li
-            a(href="/cart" title="Shopping Cart")
-              span.material-symbols-outlined shopping_cart
-          li
-            a(href="/login" title="Login")
-              span.material-symbols-outlined login
-          li
-            a(href="/profile" title="User Profile")
-              span.material-symbols-outlined person
+            a(href="/cart") Cart
+          if user
+            li
+              a(href="/profile") Profile
+            li
+              a(href="/logout") Logout
+          else
+            li
+              a(href="/login") Login
     
     main
       block content
 
     footer
       p Created for Educational Purposes © 2026
+    
+    script(src="/js/homepage.js")

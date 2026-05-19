@@ -4,7 +4,10 @@ const express = require('express');
 const path = require('path'); 
 const sqlite3 = require("sqlite3").verbose(); 
 const session = require('express-session');
+const bcrypt = require('bcrypt');
 const app = express();
+
+const SALT_ROUNDS = 10;
 
 const PORT = process.env.PORT || 3000;
 
@@ -83,28 +86,57 @@ const db = new sqlite3.Database("inventory.db", (err) => {
 
 // --- Auth Routes ---
 
-app.post('/register', (req, res) => {
-  const { username, password } = req.body;
-  db.run("INSERT INTO users (username, password) VALUES (?, ?)", [username, password], (err) => {
-    if (err) return res.render('login', { error: "Username taken or database error." });
-    res.render('login', { success: "Account created! You can now log in." });
-  });
+app.post('/register', async (req, res) => {
+  const { username, password, confirmPassword } = req.body;
+  
+  // Check if passwords match
+  if (password !== confirmPassword) {
+    return res.render('register', { error: "Passwords do not match." });
+  }
+  
+  try {
+    // Hash the password with bcrypt
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    
+    db.run("INSERT INTO users (username, password) VALUES (?, ?)", [username, hashedPassword], (err) => {
+      if (err) return res.render('register', { error: "Username already taken." });
+      res.render('login', { success: "Account created! You can now log in." });
+    });
+  } catch (error) {
+    res.render('register', { error: "Error creating account. Please try again." });
+  }
 });
 
-app.post('/login', (req, res) => {
+app.get('/register', (req, res) => res.render('register'));
+
+app.post('/login', async (req, res) => {
   const { username, password } = req.body;
-  db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, user) => {
-    if (user) {
-      req.session.user = user;
-      // Get inventory to render the products page with a welcome message
-      db.all("SELECT * FROM inventory", (err, rows) => {
-        res.render('products', { 
-          inventory: rows, 
-          welcomeMsg: `Welcome back, ${user.username}!` 
+  
+  db.get("SELECT * FROM users WHERE username = ?", [username], async (err, user) => {
+    if (err) return res.render('login', { error: "Database error. Please try again." });
+    
+    if (!user) {
+      return res.render('login', { error: "Invalid username or password." });
+    }
+    
+    try {
+      // Compare the provided password with the hashed password
+      const passwordMatch = await bcrypt.compare(password, user.password);
+      
+      if (passwordMatch) {
+        req.session.user = user;
+        // Get inventory to render the products page with a welcome message
+        db.all("SELECT * FROM inventory", (err, rows) => {
+          res.render('products', { 
+            inventory: rows, 
+            welcomeMsg: `Welcome back, ${user.username}!` 
+          });
         });
-      });
-    } else {
-      res.render('login', { error: "Invalid username or password." });
+      } else {
+        res.render('login', { error: "Invalid username or password." });
+      }
+    } catch (error) {
+      res.render('login', { error: "Error logging in. Please try again." });
     }
   });
 });
@@ -196,6 +228,35 @@ app.post('/cart/remove', (req, res) => {
 
   db.run("DELETE FROM cart WHERE user_id = ? AND product_id = ?", [userId, productId], (err) => {
     res.redirect('/cart');
+  });
+});
+
+app.post('/checkout', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  const userId = req.session.user.id;
+
+  const query = `
+    SELECT inventory.* FROM inventory 
+    JOIN cart ON inventory.mileage = cart.product_id 
+    WHERE cart.user_id = ?
+  `;
+
+  db.all(query, [userId], (err, items) => {
+    if (err) return res.status(500).send("Error processing checkout");
+    if (!items || items.length === 0) return res.redirect('/cart');
+
+    const totalAmount = items.reduce((sum, item) => sum + item.price, 0);
+    const itemCount = items.length;
+
+    // Clear the cart after successful checkout
+    db.run("DELETE FROM cart WHERE user_id = ?", [userId], (err) => {
+      if (err) return res.status(500).send("Error clearing cart");
+      
+      res.render('checkout-success', { 
+        totalAmount, 
+        itemCount 
+      });
+    });
   });
 });
 

@@ -1,0 +1,20 @@
+extends layout
+
+block content
+  div.checkout-success
+    h1.success-title Order Confirmed!
+    p.success-message Thank you for your purchase!
+    
+    div.order-details
+      h3 Order Summary
+      p You have successfully placed an order for #{itemCount} vehicle#{itemCount > 1 ? 's' : ''}.
+      p.order-total
+        strong Total: 
+        span.price-highlight $#{totalAmount.toLocaleString()}
+      
+      p Our team will contact you shortly to finalize the details and arrange delivery.
+    
+    div.success-actions
+      a.btn(href="/products") Continue Shopping
+      a.btn.btn-secondary(href="/profile") View Profile
+      a.btn.btn-outline(href="/") Go Home

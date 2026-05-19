@@ -2,7 +2,30 @@ extends layout
 
 block content
   section.hero
-    h1 Welcome to the SFSU Dealership
-    p Providing the community with reliable and transparent vehicle options.
+    h1 Welcome to SFSU Dealership
+    p Your trusted source for quality pre-owned vehicles in San Francisco
+    p Browse our selection of certified cars and find your perfect match
+    
     div.cta-container
-      a.btn(href="/products") Browse Current Inventory
+      a.btn(href="/products") Browse Inventory
+      if !user
+        a.btn.btn-secondary(href="/register") Create Account
+
+  section.info-section
+    h2 Why Choose Us?
+    div.info-grid
+      div.info-card
+        h3 Quality Vehicles
+        p All vehicles are certified pre-owned and thoroughly inspected
+      
+      div.info-card
+        h3 Fair Pricing
+        p Transparent pricing with no hidden fees
+      
+      div.info-card
+        h3 Secure Shopping
+        p Safe and secure account management
+      
+      div.info-card
+        h3 Local Service
+        p Proudly serving the San Francisco community

@@ -1,7 +1,7 @@
 {
   "name": "e-commerce-project",
   "version": "1.0.0",
-  "description": "",
+  "description": "SFSU Dealership - E-commerce car selling website",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -11,8 +11,14 @@
   "author": "Mherrera30",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "express": "^5.2.1",
-    "pug": "^3.0.4"
+    "express-session": "^1.18.0",
+    "pug": "^3.0.4",
+    "sqlite3": "^5.1.7"
   }
 }

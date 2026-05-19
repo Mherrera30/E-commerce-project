@@ -1,6 +1,9 @@
 extends layout
 
 block content
+  if welcomeMsg
+    p.alert-success #{welcomeMsg}
+  
   h1.inventory-title Current Inventory
   p.inventory-subtitle Explore our certified pre-owned selection.
 

@@ -1,7 +1,23 @@
 extends layout
 
 block content
-  h1 User Profile
-  p Name: Student
-  p Email: gator@sfsu.edu
-  p Member Since: 2026
+  div.hero
+    h1 User Profile
+    if user
+      p
+        strong Username: 
+        | #{user.username}
+      p
+        strong User ID: 
+        | #{user.id}
+      p
+        strong Member Since: 
+        | 2026
+      
+      div.cta-container
+        a.btn(href="/products") Browse Inventory
+        a.btn(href="/cart" style="background: #C99700; color: #231161; margin-left: 1rem;") View Cart
+        a.btn(href="/logout" style="background: #a30000; margin-left: 1rem;") Logout
+    else
+      p You are not logged in.
+      a.btn(href="/login") Login
