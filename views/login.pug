@@ -1,0 +1,25 @@
+extends layout
+
+block content
+  div.login-page
+    h1 Login
+    p Access your SFSU Dealership account
+    
+    if error
+      div.alert-error= error
+    if success
+      div.alert-success= success
+
+    form(action="/login" method="POST")
+      div.input-box
+        label(for="username") Username
+        input(type="text" name="username" id="username" required)
+      
+      div.input-box
+        label(for="password") Password
+        input(type="password" name="password" id="password" required)
+      
+      button.btn(type="submit") Login
+    
+    p Don't have an account? 
+      a(href="/register") Create one here

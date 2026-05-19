@@ -1,0 +1,33 @@
+extends layout
+
+block content
+  div.detail-container
+    // The Image
+    div.detail-image-section
+      img(src=car.image_url alt=car.model)
+    
+    // The Info
+    div.detail-info-section
+      nav.breadcrumb
+        a(href="/products") ← Back to Inventory
+      
+      h1 #{car.model}
+      div.price-tag $#{car.price.toLocaleString()}
+      
+      div.specs-grid
+        div.spec-item
+          span.label Mileage
+          span.value #{car.mileage.toLocaleString()} mi
+        div.spec-item
+          span.label Condition
+          span.value Certified Pre-Owned
+        div.spec-item
+          span.label Location
+          span.value San Francisco, CA
+
+          //- THE FUNCTIONAL PART
+      form(action="/cart/add" method="POST")
+        input(type="hidden" name="mileage" value=car.mileage)
+        button.btn-cart(type="submit") 
+          span.material-symbols-outlined shopping_cart
+          | Add to Cart

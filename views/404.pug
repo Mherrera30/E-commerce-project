@@ -1,0 +1,42 @@
+extends layout
+
+block content
+  div.error-404
+    div.error-animation
+      div.car-404
+        svg(xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200")
+          // Car body
+          path(d="M50 120 L70 80 L110 70 L190 70 L230 80 L250 120 Z" fill="#231161" stroke="#1a0d4a" stroke-width="3")
+          // Windows
+          rect(x="80" y="85" width="50" height="25" fill="#87ceeb" opacity="0.6")
+          rect(x="170" y="85" width="50" height="25" fill="#87ceeb" opacity="0.6")
+          // Wheels
+          circle(cx="95" cy="120" r="18" fill="#333")
+          circle(cx="95" cy="120" r="10" fill="#666")
+          circle(cx="205" cy="120" r="18" fill="#333")
+          circle(cx="205" cy="120" r="10" fill="#666")
+          // Smoke puffs
+          circle.smoke1(cx="40" cy="110" r="8" fill="#ccc" opacity="0.5")
+          circle.smoke2(cx="30" cy="105" r="6" fill="#ccc" opacity="0.4")
+          circle.smoke3(cx="20" cy="100" r="5" fill="#ccc" opacity="0.3")
+      
+      div.number-404
+        span.four 4
+        span.zero 0
+        span.four-2 4
+    
+    div.error-content
+      h1.error-title Oops! Wrong Turn
+      p.error-message Looks like this page took a detour and got lost.
+      p.error-hint The page you're looking for doesn't exist or may have been moved.
+      
+      div.error-actions
+        a.btn(href="/") 
+          span.material-symbols-outlined home
+          | Go Home
+        a.btn(href="/products" style="background: linear-gradient(135deg, #C99700 0%, #FFD700 100%); color: #231161; margin-left: 1rem;")
+          span.material-symbols-outlined directions_car
+          | Browse Cars
+        a.btn(href="/login" style="background: transparent; border: 2px solid #231161; color: #231161; margin-left: 1rem;")
+          span.material-symbols-outlined login
+          | Login

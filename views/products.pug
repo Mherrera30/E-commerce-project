@@ -1,0 +1,22 @@
+extends layout
+
+block content
+  if welcomeMsg
+    p.alert-success #{welcomeMsg}
+  
+  h1.inventory-title Current Inventory
+  p.inventory-subtitle Explore our certified pre-owned selection.
+
+  div.inventory-grid
+    each car in inventory
+      div.car-card
+
+        img.car-image(src=car.image_url alt=car.model)
+        
+        div.car-card-content
+          h2.car-model #{car.model}
+          div.car-meta
+            span.price $#{car.price.toLocaleString()}
+            span.mileage #{car.mileage.toLocaleString()} mi
+          
+          a.btn-details(href=`/products/${car.mileage}`) View Details

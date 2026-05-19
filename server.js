@@ -1,106 +1,279 @@
 
 'use strict';
 const express = require('express');
+const path = require('path'); 
+const sqlite3 = require("sqlite3").verbose(); 
+const session = require('express-session');
+const bcrypt = require('bcrypt');
 const app = express();
 
-app.use(express.json());
+const SALT_ROUNDS = 10;
 
 const PORT = process.env.PORT || 3000;
 
 
-/** Inventory
- * 3 fields (mileage, model, price) & 3 seed items
- */
-const inventory = [
-  { mileage: 35000, model: 'Honda Accord', price: 24000 },
-  { mileage: 15000, model: 'Tesla Model 3', price: 25000 },
-  { mileage: 85000, model: 'Chevrolet Camaro', price: 15000 }
-];
+app.use(express.json());
+app.use(express.urlencoded({ extended: true })); 
+app.use(express.static(path.join(__dirname, 'public'))); 
 
+app.use(session({
+  secret: 'sfsu-dealership-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 600000 } // Session lasts 10 minutes
+}));
 
-
-
-// --- Helpers ---
-
-function isValidVehicle(body) {
-  const { mileage, model, price } = body || {};
-  return (
-    typeof mileage === 'number' && mileage >= 0 &&
-    typeof model === 'string' && model.trim().length > 0 &&
-    typeof price === 'number' && price > 0
-  );
-}
-
-function normalizeModel(name) {
-  return String(name || '').toLowerCase().trim();
-}
-
-function findIndexByMileage(mileageParam) {
-  const target = Number(mileageParam);
-  return inventory.findIndex(car => car.mileage === target);
-}
-
-
-
-
-// --- Routes ---
-
-// GET / : Return all cars
-app.get('/', (req, res) => {
-  res.status(200).json(inventory);
+app.use((req, res, next) => {
+  res.locals.user = req.session.user; 
+  next();
 });
 
-// HEAD / : Return count via Vehicle-Count header
-app.head('/', (req, res) => {
-  res.set('Vehicle-Count', String(inventory.length));
-  res.sendStatus(200);
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
+
+
+
+// --- Database Setup ---
+const db = new sqlite3.Database("inventory.db", (err) => {
+    if (err) return console.error("Error opening database:", err.message);
+    console.log("Connected to the SFSU Dealership database.");
+
+    db.run("PRAGMA foreign_keys = ON");
+
+    // Users Table
+    db.run(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL
+      )
+    `);
+
+    // Inventory Table 
+    db.run(`
+      CREATE TABLE IF NOT EXISTS inventory (
+        mileage INTEGER PRIMARY KEY,
+        model TEXT NOT NULL,
+        price INTEGER,
+        image_url TEXT
+      )
+    `, (err) => {
+        if (err) return;
+        const insertQuery = `INSERT OR IGNORE INTO inventory (mileage, model, price, image_url) VALUES (?, ?, ?, ?)`;
+        db.run(insertQuery, [58000, "2018 Honda Accord", 24000, "/images/2018_Accord.png"]);
+        db.run(insertQuery, [15000, "2020 Tesla Model 3", 25000, "/images/2020_Model_3.png"]);
+        db.run(insertQuery, [85000, "2017 Chevrolet Camaro", 45000, "/images/2017_Camaro.png"]);
+        db.run(insertQuery, [20000, "2024 Porsche GT3 RS", 220000, "/images/2024_GT3_RS.png"]);
+        db.run(insertQuery, [60000, "2019 Mercedes S Class", 70000, "/images/2019_Mercedes.png"]);
+    });
+
+    // Cart Table
+    db.run(`
+      CREATE TABLE IF NOT EXISTS cart (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        product_id INTEGER,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES inventory(mileage) ON DELETE CASCADE,
+        UNIQUE(user_id, product_id)
+      )
+    `);
 });
 
-// GET /:mileage : Return single car by mileage
-app.get('/:mileage', (req, res) => {
-  const index = findIndexByMileage(req.params.mileage);
+
+
+
+// --- Auth Routes ---
+
+app.post('/register', async (req, res) => {
+  const { username, password, confirmPassword } = req.body;
   
-  if (index === -1) {
-    return res.status(404).json({ error: 'Vehicle not found' });
+  // Check if passwords match
+  if (password !== confirmPassword) {
+    return res.render('register', { error: "Passwords do not match." });
   }
-
-  res.status(200).json(inventory[index]);
+  
+  try {
+    // Hash the password with bcrypt
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    
+    db.run("INSERT INTO users (username, password) VALUES (?, ?)", [username, hashedPassword], (err) => {
+      if (err) return res.render('register', { error: "Username already taken." });
+      res.render('login', { success: "Account created! You can now log in." });
+    });
+  } catch (error) {
+    res.render('register', { error: "Error creating account. Please try again." });
+  }
 });
 
-// POST /add : Add new car
-app.post('/add', (req, res) => {
-  if (!isValidVehicle(req.body)) {
-    return res.status(400).json({ error: 'Invalid vehicle data' });
-  }
+app.get('/register', (req, res) => res.render('register'));
 
-  // Check for duplicate mileage (Mileage acts as a unique ID)
-  const existingIndex = findIndexByMileage(req.body.mileage);
-  if (existingIndex !== -1) {
-    return res.status(409).json({ error: 'Vehicle exists' });
-  }
-
-  const newVehicle = {
-    mileage: req.body.mileage,
-    model: req.body.model.trim(),
-    price: req.body.price
-  };
-
-  inventory.push(newVehicle);
-  res.status(201).json(newVehicle);
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  
+  db.get("SELECT * FROM users WHERE username = ?", [username], async (err, user) => {
+    if (err) return res.render('login', { error: "Database error. Please try again." });
+    
+    if (!user) {
+      return res.render('login', { error: "Invalid username or password." });
+    }
+    
+    try {
+      // Compare the provided password with the hashed password
+      const passwordMatch = await bcrypt.compare(password, user.password);
+      
+      if (passwordMatch) {
+        req.session.user = user;
+        // Get inventory to render the products page with a welcome message
+        db.all("SELECT * FROM inventory", (err, rows) => {
+          res.render('products', { 
+            inventory: rows, 
+            welcomeMsg: `Welcome back, ${user.username}!` 
+          });
+        });
+      } else {
+        res.render('login', { error: "Invalid username or password." });
+      }
+    } catch (error) {
+      res.render('login', { error: "Error logging in. Please try again." });
+    }
+  });
 });
 
-// DELETE /:mileage : Delete car by mileage
-app.delete('/:mileage', (req, res) => {
-  const index = findIndexByMileage(req.params.mileage);
-
-  if (index === -1) {
-    return res.status(404).json({ error: 'Vehicle not found' });
-  }
-
-  const deletedVehicle = inventory.splice(index, 1);
-  res.status(204).json({ message: 'Vehicle deleted', vehicle: deletedVehicle[0] });
+app.get('/logout', (req, res) => {
+  req.session.destroy();
+  res.redirect('/');
 });
+
+
+
+
+// --- API Routes (JSON) ---
+
+app.get('/api/products', (req, res) => {
+  db.all("SELECT * FROM inventory", (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.status(200).json(rows);
+  });
+});
+
+app.get('/api/products/:mileage', (req, res) => {
+  db.get("SELECT * FROM inventory WHERE mileage = ?", [req.params.mileage], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: 'Vehicle not found' });
+    res.status(200).json(row);
+  });
+});
+
+
+
+
+// --- View Routes (HTML) ---
+
+app.get('/', (req, res) => res.render('home'));
+
+app.get('/products', (req, res) => {
+  db.all("SELECT * FROM inventory", (err, rows) => {
+    if (err) return res.status(500).send("Database error");
+    res.render('products', { inventory: rows });
+  });
+});
+
+app.get('/products/:mileage', (req, res) => {
+  db.get("SELECT * FROM inventory WHERE mileage = ?", [req.params.mileage], (err, row) => {
+    if (err) return res.status(500).send("Database error");
+    if (!row) return res.status(404).render('404', { id: req.params.mileage });
+    res.render('product-detail', { car: row });
+  });
+});
+
+
+
+
+// --- Cart Functionality ---
+
+app.post('/cart/add', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  const userId = req.session.user.id;
+  const productId = req.body.mileage;
+
+  // Uses INSERT OR IGNORE to respect the UNIQUE constraint in the DB
+  db.run("INSERT OR IGNORE INTO cart (user_id, product_id) VALUES (?, ?)", [userId, productId], (err) => {
+    if (err) return res.status(500).send("Error adding to cart");
+    res.redirect('/cart');
+  });
+});
+
+app.get('/cart', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  const userId = req.session.user.id;
+
+  const query = `
+    SELECT inventory.* FROM inventory 
+    JOIN cart ON inventory.mileage = cart.product_id 
+    WHERE cart.user_id = ?
+  `;
+
+  db.all(query, [userId], (err, items) => {
+    if (err) return res.status(500).send("Error fetching cart");
+    res.render('cart', { cartItems: items });
+  });
+});
+
+app.post('/cart/remove', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  const userId = req.session.user.id;
+  const productId = req.body.mileage;
+
+  db.run("DELETE FROM cart WHERE user_id = ? AND product_id = ?", [userId, productId], (err) => {
+    res.redirect('/cart');
+  });
+});
+
+app.post('/checkout', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  const userId = req.session.user.id;
+
+  const query = `
+    SELECT inventory.* FROM inventory 
+    JOIN cart ON inventory.mileage = cart.product_id 
+    WHERE cart.user_id = ?
+  `;
+
+  db.all(query, [userId], (err, items) => {
+    if (err) return res.status(500).send("Error processing checkout");
+    if (!items || items.length === 0) return res.redirect('/cart');
+
+    const totalAmount = items.reduce((sum, item) => sum + item.price, 0);
+    const itemCount = items.length;
+
+    // Clear the cart after successful checkout
+    db.run("DELETE FROM cart WHERE user_id = ?", [userId], (err) => {
+      if (err) return res.status(500).send("Error clearing cart");
+      
+      res.render('checkout-success', { 
+        totalAmount, 
+        itemCount 
+      });
+    });
+  });
+});
+
+app.get('/login', (req, res) => res.render('login'));
+
+app.get('/profile', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  res.render('profile');
+});
+
+
+// 404 Catcher
+app.use((req, res) => {
+  res.status(404).render('404', { id: req.originalUrl });
+});
+
 
 app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
+  console.log(`SFSU Dealership Server running at http://localhost:${PORT}`);
 });
