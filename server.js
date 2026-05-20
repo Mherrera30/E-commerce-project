@@ -1,16 +1,14 @@
-
 'use strict';
 const express = require('express');
 const path = require('path'); 
-const sqlite3 = require("sqlite3").verbose(); 
 const session = require('express-session');
 const bcrypt = require('bcrypt');
+
+const db = require('./database');
+
 const app = express();
-
 const SALT_ROUNDS = 10;
-
 const PORT = process.env.PORT || 3000;
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); 
@@ -34,70 +32,15 @@ app.set('views', path.join(__dirname, 'views'));
 
 
 
-// --- Database Setup ---
-const db = new sqlite3.Database("inventory.db", (err) => {
-    if (err) return console.error("Error opening database:", err.message);
-    console.log("Connected to the SFSU Dealership database.");
-
-    db.run("PRAGMA foreign_keys = ON");
-
-    // Users Table
-    db.run(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL
-      )
-    `);
-
-    // Inventory Table 
-    db.run(`
-      CREATE TABLE IF NOT EXISTS inventory (
-        mileage INTEGER PRIMARY KEY,
-        model TEXT NOT NULL,
-        price INTEGER,
-        image_url TEXT
-      )
-    `, (err) => {
-        if (err) return;
-        const insertQuery = `INSERT OR IGNORE INTO inventory (mileage, model, price, image_url) VALUES (?, ?, ?, ?)`;
-        db.run(insertQuery, [58000, "2018 Honda Accord", 24000, "/images/2018_Accord.png"]);
-        db.run(insertQuery, [15000, "2020 Tesla Model 3", 25000, "/images/2020_Model_3.png"]);
-        db.run(insertQuery, [85000, "2017 Chevrolet Camaro", 45000, "/images/2017_Camaro.png"]);
-        db.run(insertQuery, [20000, "2024 Porsche GT3 RS", 220000, "/images/2024_GT3_RS.png"]);
-        db.run(insertQuery, [60000, "2019 Mercedes S Class", 70000, "/images/2019_Mercedes.png"]);
-    });
-
-    // Cart Table
-    db.run(`
-      CREATE TABLE IF NOT EXISTS cart (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        product_id INTEGER,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-        FOREIGN KEY (product_id) REFERENCES inventory(mileage) ON DELETE CASCADE,
-        UNIQUE(user_id, product_id)
-      )
-    `);
-});
-
-
-
-
 // --- Auth Routes ---
 
 app.post('/register', async (req, res) => {
   const { username, password, confirmPassword } = req.body;
-  
-  // Check if passwords match
   if (password !== confirmPassword) {
     return res.render('register', { error: "Passwords do not match." });
   }
-  
   try {
-    // Hash the password with bcrypt
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-    
     db.run("INSERT INTO users (username, password) VALUES (?, ?)", [username, hashedPassword], (err) => {
       if (err) return res.render('register', { error: "Username already taken." });
       res.render('login', { success: "Account created! You can now log in." });
@@ -111,21 +54,13 @@ app.get('/register', (req, res) => res.render('register'));
 
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
-  
   db.get("SELECT * FROM users WHERE username = ?", [username], async (err, user) => {
     if (err) return res.render('login', { error: "Database error. Please try again." });
-    
-    if (!user) {
-      return res.render('login', { error: "Invalid username or password." });
-    }
-    
+    if (!user) return res.render('login', { error: "Invalid username or password." });
     try {
-      // Compare the provided password with the hashed password
       const passwordMatch = await bcrypt.compare(password, user.password);
-      
       if (passwordMatch) {
         req.session.user = user;
-        // Get inventory to render the products page with a welcome message
         db.all("SELECT * FROM inventory", (err, rows) => {
           res.render('products', { 
             inventory: rows, 
@@ -198,7 +133,6 @@ app.post('/cart/add', (req, res) => {
   const userId = req.session.user.id;
   const productId = req.body.mileage;
 
-  // Uses INSERT OR IGNORE to respect the UNIQUE constraint in the DB
   db.run("INSERT OR IGNORE INTO cart (user_id, product_id) VALUES (?, ?)", [userId, productId], (err) => {
     if (err) return res.status(500).send("Error adding to cart");
     res.redirect('/cart');
@@ -248,10 +182,8 @@ app.post('/checkout', (req, res) => {
     const totalAmount = items.reduce((sum, item) => sum + item.price, 0);
     const itemCount = items.length;
 
-    // Clear the cart after successful checkout
     db.run("DELETE FROM cart WHERE user_id = ?", [userId], (err) => {
       if (err) return res.status(500).send("Error clearing cart");
-      
       res.render('checkout-success', { 
         totalAmount, 
         itemCount 
