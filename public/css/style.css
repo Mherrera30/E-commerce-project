@@ -96,12 +96,17 @@ main { padding: 100px 5% 2rem 5%; min-height: 80vh; }
 .btn-details { display: block; text-align: center; background: #231161; color: white; padding: 0.8rem; text-decoration: none; border-radius: 5px; font-weight: 600; transition: background 0.3s; }
 .btn-details:hover { background: #C99700; color: #231161; }
 
-.detail-container { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto; }
-.detail-image { width: 100%; max-width: 500px; height: auto; display: block; margin: 0 auto 2rem auto; border-radius: 10px; }
-.detail-info h2 { color: #231161; font-size: 2rem; margin-bottom: 1rem; }
-.detail-info p { font-size: 1.1rem; margin-bottom: 0.8rem; color: #666; }
-.detail-info strong { color: #231161; }
-.detail-price { font-size: 2rem; color: #C99700; font-weight: 700; margin: 1.5rem 0; }
+.detail-container { display: flex; gap: 4rem; align-items: flex-start; margin-top: 2rem; }
+.detail-image-section { flex: 1.5; }
+.detail-image-section img { width: 100%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+.detail-info-section { flex: 1; }
+.breadcrumb a { color: #666; text-decoration: none; font-size: 0.9rem; }
+.price-tag { font-size: 2.5rem; font-weight: 700; color: #231161; margin: 1rem 0; }
+.specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 2rem 0; padding: 1.5rem 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
+.spec-item .label { display: block; font-size: 0.8rem; color: #888; text-transform: uppercase; }
+.spec-item .value { font-weight: 600; font-size: 1.1rem; }
+.btn-cart { background: #C99700;  color: #231161; border: none; padding: 1.25rem 2rem; border-radius: 8px; font-weight: 700; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 10px; width: 100%; justify-content: center; transition: transform 0.2s, background 0.3s; }
+.btn-cart:hover { transform: translateY(-2px); background: #b38600; }
 
 .cart-summary { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; margin: 2rem 0 0 auto; }
 .cart-summary h3 { color: #231161; margin-bottom: 1rem; }

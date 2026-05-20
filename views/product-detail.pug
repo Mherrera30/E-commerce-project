@@ -24,6 +24,9 @@ block content
         div.spec-item
           span.label Location
           span.value San Francisco, CA
+        div.spec-item
+          span.label Engine / Powertrain
+          span.value #{car.engine || 'N/A'}
 
           //- THE FUNCTIONAL PART
       form(action="/cart/add" method="POST")
