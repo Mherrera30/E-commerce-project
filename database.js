@@ -19,7 +19,7 @@ const db = new sqlite3.Database("inventory.db", (err) => {
     // Inventory Table 
     db.run(`
       CREATE TABLE IF NOT EXISTS inventory (
-        model TEXT PRIMARY KEY,  /* Simple Fix: Make model the primary key */
+        model TEXT PRIMARY KEY,  /* Model is TEXT and PRIMARY KEY */
         mileage INTEGER,
         price INTEGER,
         image_url TEXT,
@@ -43,14 +43,14 @@ const db = new sqlite3.Database("inventory.db", (err) => {
         db.run(insertQuery, ["2026 Audi e-tron GT", 1500, 110000, "/images/2026_Audi_e-tron_GT.png", "Electric"]);
     });
 
-    // Cart Table
+    // Cart Table 
     db.run(`
       CREATE TABLE IF NOT EXISTS cart (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
-        product_id INTEGER,
+        product_id TEXT,  /* Changed from INTEGER to TEXT to hold the model string */
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-        FOREIGN KEY (product_id) REFERENCES inventory(mileage) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES inventory(model) ON DELETE CASCADE, /* Changed reference to link directly to inventory(model) */
         UNIQUE(user_id, product_id)
       )
     `);

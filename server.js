@@ -115,10 +115,10 @@ app.get('/products', (req, res) => {
   });
 });
 
-app.get('/products/:mileage', (req, res) => {
-  db.get("SELECT * FROM inventory WHERE mileage = ?", [req.params.mileage], (err, row) => {
+app.get('/products/:model', (req, res) => {
+  db.get("SELECT * FROM inventory WHERE model = ?", [req.params.model], (err, row) => {
     if (err) return res.status(500).send("Database error");
-    if (!row) return res.status(404).render('404', { id: req.params.mileage });
+    if (!row) return res.status(404).render('404', { id: req.params.model });
     res.render('product-detail', { car: row });
   });
 });
@@ -131,10 +131,12 @@ app.get('/products/:mileage', (req, res) => {
 app.post('/cart/add', (req, res) => {
   if (!req.session.user) return res.redirect('/login');
   const userId = req.session.user.id;
-  const productId = req.body.mileage;
+  const productId = req.body.model; 
 
-  db.run("INSERT OR IGNORE INTO cart (user_id, product_id) VALUES (?, ?)", [userId, productId], (err) => {
-    if (err) return res.status(500).send("Error adding to cart");
+  db.run("INSERT OR IGNORE INTO cart (user_id, product_id) VALUES (?, ?)", [userId, productId], function(err) {
+    if (err) {
+      return res.status(500).send("Error adding to cart: " + err.message);
+    }
     res.redirect('/cart');
   });
 });
@@ -145,7 +147,7 @@ app.get('/cart', (req, res) => {
 
   const query = `
     SELECT inventory.* FROM inventory 
-    JOIN cart ON inventory.mileage = cart.product_id 
+    JOIN cart ON inventory.model = cart.product_id 
     WHERE cart.user_id = ?
   `;
 
@@ -158,7 +160,7 @@ app.get('/cart', (req, res) => {
 app.post('/cart/remove', (req, res) => {
   if (!req.session.user) return res.redirect('/login');
   const userId = req.session.user.id;
-  const productId = req.body.mileage;
+  const productId = req.body.model; 
 
   db.run("DELETE FROM cart WHERE user_id = ? AND product_id = ?", [userId, productId], (err) => {
     res.redirect('/cart');
@@ -171,7 +173,7 @@ app.post('/checkout', (req, res) => {
 
   const query = `
     SELECT inventory.* FROM inventory 
-    JOIN cart ON inventory.mileage = cart.product_id 
+    JOIN cart ON inventory.model = cart.product_id 
     WHERE cart.user_id = ?
   `;
 

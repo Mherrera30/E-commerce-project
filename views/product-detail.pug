@@ -28,9 +28,9 @@ block content
           span.label Engine / Powertrain
           span.value #{car.engine || 'N/A'}
 
-          //- THE FUNCTIONAL PART
+      //- The Functional Part
       form(action="/cart/add" method="POST")
-        input(type="hidden" name="mileage" value=car.mileage)
+        input(type="hidden" name="model" value=car.model)
         button.btn-cart(type="submit") 
           span.material-symbols-outlined shopping_cart
           | Add to Cart
