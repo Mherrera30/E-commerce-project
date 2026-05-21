@@ -19,4 +19,4 @@ block content
             span.price $#{car.price.toLocaleString()}
             span.mileage #{car.mileage.toLocaleString()} mi
           
-          a.btn-details(href=`/products/${car.mileage}`) View Details
+          a.btn-details(href=`/products/${encodeURIComponent(car.model)}`) View Details
