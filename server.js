@@ -18,7 +18,12 @@ app.use(session({
   secret: 'sfsu-dealership-secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 600000 } // Session lasts 10 minutes
+  cookie: { 
+    maxAge: 600000, // Session lasts 10 minutes
+    secure: false, // Set to true if using HTTPS
+    httpOnly: true,
+    sameSite: 'lax'
+  }
 }));
 
 app.use((req, res, next) => {
